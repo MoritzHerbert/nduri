@@ -1,0 +1,6 @@
+framework module nduri {
+  umbrella header "nduri-umbrella.h"
+
+  export *
+  module * { export * }
+}
