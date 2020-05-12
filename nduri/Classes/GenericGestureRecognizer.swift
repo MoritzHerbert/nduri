@@ -25,6 +25,12 @@ public enum StrokeDeflection: String {
     case northeastStroke
 }
 
+public enum Direction: String {
+    case left
+    case right
+    case none
+}
+
 // indicate where strokes took plase (should be used relative to scrollable areas)
 enum Grid {
     case veryTopLeft
@@ -63,6 +69,18 @@ public class Tilt: GestureMeasurement {
     }
 }
 
+public class LinearStrokeDeviance: GestureMeasurement {
+    init(data: CGFloat) {
+        super.init(data: data)
+    }
+}
+
+public class LinearStrokeDevianceDirection: GestureMeasurement {
+    init(data: Direction) {
+        super.init(data: data)
+    }
+}
+
 public class MeasurementsList {
     private var measurements: [GestureMeasurement] = []
 
@@ -93,6 +111,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     private(set) var measurementsLog = MeasurementsList()
     private var motionManager: CMMotionManager!
     private var motionTimer: Timer?
+    private var gesturePath: [CGPoint]!
 
     public var measurementsDidChange: ((GestureMeasurement) -> ())? {
         didSet {
@@ -107,6 +126,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
         motionManager = CMMotionManager()
         motionManager.startAccelerometerUpdates()
+
+        gesturePath = []
 
         #if !targetEnvironment(simulator)
         motionTimer = Timer.scheduledTimer(withTimeInterval: 1,
@@ -135,6 +156,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             trackedTouch = touches.first
             strokePhase = .initialPoint
             initialTouchPoint = (trackedTouch?.location(in: view))!
+            gesturePath.append(initialTouchPoint)
         } else {
             // Ignore all but the first touch.
             for touch in touches {
@@ -157,9 +179,9 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         if strokePhase == .initialPoint {
             // Make sure the initial movement is down and to the right.
             strokePhase = .moved
-
-
         }
+
+        gesturePath.append(newTouch.location(in: view))
     }
 
     public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
@@ -169,6 +191,9 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             state = .failed
             return
         }
+
+        let endPoint = newTouch.location(in: view)
+
 
         switch strokePhase {
         case .initialPoint:
@@ -181,12 +206,28 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 // Fallback on earlier versions
             }
         case .moved:
-            let deflection = determineDeflection(from: initialTouchPoint, to: newTouch.location(in: view))
+            fingerDidMove?(initialTouchPoint, endPoint)
+
+            let deflection = determineDeflection(from: initialTouchPoint, to:endPoint)
             measurementsLog.append(Deflection(data: deflection))
-            fingerDidMove?(initialTouchPoint, newTouch.location(in: view))
+
+
+            if let pointWithMaxDeviance = gesturePath.max { (p1, p2) -> Bool in
+                return p1.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint) < p2.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)
+                } {
+                measurementsLog.append(LinearStrokeDeviance(data: pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)))
+
+
+                if deflection != .eastStroke && deflection != .westStroke { // won't make much sense
+                    let direction = determineDevianceDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
+                    measurementsLog.append(LinearStrokeDevianceDirection(data: direction))
+                }
+            }
+
         default: ()
         }
 
+        gesturePath.removeAll(keepingCapacity: false)
         state = .ended
     }
 
@@ -219,6 +260,21 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         }
 
         return start.x <= end.x ? .southStroke : .northStroke
+    }
+
+    private func determineDevianceDirection(from start: CGPoint, to end: CGPoint, lookingAt point: CGPoint) -> Direction {
+        if start.y == end.y {
+            return .none
+        }
+
+        let sign = ((end.x - start.x) * (point.y - start.y) - (end.y - start.y) * (point.x - start.x)).sign
+
+        switch sign {
+        case .minus:
+            return start.y > end.y ? .left : .right
+        case .plus:
+            return start.y > end.y ? .right : .left
+        }
     }
 }
 
