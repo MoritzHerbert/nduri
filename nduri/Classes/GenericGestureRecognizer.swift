@@ -262,6 +262,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         return start.x <= end.x ? .southStroke : .northStroke
     }
 
+    /// Figure out the determinant of vectors (Start-End,Start-Point) to determin in which direction the point deviates.
     private func determineDevianceDirection(from start: CGPoint, to end: CGPoint, lookingAt point: CGPoint) -> Direction {
         if start.y == end.y {
             return .none
