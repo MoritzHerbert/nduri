@@ -81,6 +81,20 @@ public class LinearStrokeDevianceDirection: GestureMeasurement {
     }
 }
 
+// points per milliseconds
+public class StrokeSpeed: GestureMeasurement {
+    init(data: Double) {
+        super.init(data: data)
+    }
+}
+
+// microseconds
+public class TapDuration: GestureMeasurement {
+    init(data: Double) {
+        super.init(data: data)
+    }
+}
+
 public class MeasurementsList {
     private var measurements: [GestureMeasurement] = []
 
@@ -112,6 +126,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     private var motionManager: CMMotionManager!
     private var motionTimer: Timer?
     private var gesturePath: [CGPoint]!
+    private var strokeStopwatch = Stopwatch()
+    private var tapStopwatch = Stopwatch()
 
     public var measurementsDidChange: ((GestureMeasurement) -> ())? {
         didSet {
@@ -130,8 +146,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         gesturePath = []
 
         #if !targetEnvironment(simulator)
-        motionTimer = Timer.scheduledTimer(withTimeInterval: 1,
-                                           repeats: false,
+        motionTimer = Timer.scheduledTimer(withTimeInterval: 5,
+                                           repeats: true,
                                            block: { _ in
 
                                             if let accelerometerData = motionManager.accelerometerData {
@@ -145,6 +161,9 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesBegan(touches, with: event)
+
+        tapStopwatch.start()
+        strokeStopwatch.start()
 
         // let's not consider multitouch for now
         if touches.count != 1 {
@@ -186,6 +205,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
     public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesEnded(touches, with: event)
+        tapStopwatch.stop()
+        let strokeDuration = strokeStopwatch.stop()
 
         guard let newTouch = touches.first, newTouch == self.trackedTouch else {
             state = .failed
@@ -204,6 +225,10 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 measurementsLog.append(Force(data: normalisedForce.isNaN ? force : normalisedForce))
             } else {
                 // Fallback on earlier versions
+            }
+
+            if let tapDuration = tapStopwatch.microseconds {
+                measurementsLog.append(TapDuration(data: tapDuration))
             }
         case .moved:
             fingerDidMove?(initialTouchPoint, endPoint)
@@ -224,6 +249,9 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 }
             }
 
+            if let strokeDuration = strokeDuration {
+                measurementsLog.append(StrokeSpeed(data: Double(initialTouchPoint.distance(to: endPoint)) / strokeDuration))
+            }
         default: ()
         }
 
@@ -320,6 +348,10 @@ extension CGPoint {
         let dy = self.y - yy
 
         return (dx * dx + dy * dy).squareRoot()
+    }
+
+    func distance(to point: CGPoint) -> CGFloat {
+        return sqrt(pow(x - point.x, 2) + pow(y - point.y, 2))
     }
 }
 
