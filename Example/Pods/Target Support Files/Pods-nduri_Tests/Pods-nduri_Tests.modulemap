@@ -1,6 +1,0 @@
-framework module Pods_nduri_Tests {
-  umbrella header "Pods-nduri_Tests-umbrella.h"
-
-  export *
-  module * { export * }
-}
