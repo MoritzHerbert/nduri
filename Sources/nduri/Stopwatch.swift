@@ -4,6 +4,7 @@
 //  Created by Moritz Herbert on 13.05.20.
 //
 
+import Foundation
 
 final class Stopwatch {
     private var startTime: DispatchTime?

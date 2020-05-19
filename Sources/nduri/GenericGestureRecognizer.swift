@@ -6,6 +6,7 @@
 
 import Foundation
 import CoreMotion
+import UIKit
 
 // indicate deflection when e.g. scrolling
 enum StrokePhases: String {
@@ -99,18 +100,10 @@ public class MeasurementsList {
     private var measurements: [GestureMeasurement] = []
 
     public var listDidChange: ((GestureMeasurement) -> ())?
-
-//    subscript(actionIndex:Int) -> GestureMeasurement {
-//        get {
-//            return measurements[actionIndex]
-//        }
-//        set {
-//            measurements[actionIndex] = newValue
-//            if let listDidChange = listDidChange {
-//                listDidChange(newValue)
-//            }
-//        }
-//    }
+    public var jsonLog: Data? {
+        // TODO: make GestureMeasurement encodable
+        try? JSONSerialization.data(withJSONObject: measurements, options: JSONSerialization.WritingOptions())
+    }
 
     func append(_ measurement: GestureMeasurement) {
         measurements.append(measurement)
@@ -205,7 +198,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
     public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesEnded(touches, with: event)
-        tapStopwatch.stop()
+        _ = tapStopwatch.stop()
         let strokeDuration = strokeStopwatch.stop()
 
         guard let newTouch = touches.first, newTouch == self.trackedTouch else {
@@ -237,9 +230,9 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             measurementsLog.append(Deflection(data: deflection))
 
 
-            if let pointWithMaxDeviance = gesturePath.max { (p1, p2) -> Bool in
+            if let pointWithMaxDeviance = gesturePath.max(by: { (p1, p2) -> Bool in
                 return p1.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint) < p2.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)
-                } {
+            }) {
                 measurementsLog.append(LinearStrokeDeviance(data: pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)))
 
 

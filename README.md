@@ -1,29 +1,29 @@
 # nduri
 
-[![CI Status](https://img.shields.io/travis/Moritz Herbert/nduri.svg?style=flat)](https://travis-ci.org/Moritz Herbert/nduri)
-[![Version](https://img.shields.io/cocoapods/v/nduri.svg?style=flat)](https://cocoapods.org/pods/nduri)
-[![License](https://img.shields.io/cocoapods/l/nduri.svg?style=flat)](https://cocoapods.org/pods/nduri)
-[![Platform](https://img.shields.io/cocoapods/p/nduri.svg?style=flat)](https://cocoapods.org/pods/nduri)
+[![CI Status](http://img.shields.io/travis/__GITHUB_USERNAME__/nduri.svg?style=flat)](https://travis-ci.org/__GITHUB_USERNAME__/nduri)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/__GITHUB_USERNAME__/nduri)
+[![License](https://img.shields.io/github/license/__GITHUB_USERNAME__/nduri)](LICENSE)
+
+<a href="https://placehold.it/400?text=Screen+shot"><img width=200 height=200 src="https://placehold.it/400?text=Screen+shot" alt="Screenshot" /></a>
+
 
 ## Example
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+To run the example project, clone this repo, and open iOS nduri.xcworkspace from the iOS Example directory.
+
 
 ## Requirements
 
+
 ## Installation
 
-nduri is available through [CocoaPods](https://cocoapods.org). To install
-it, simply add the following line to your Podfile:
-
-```ruby
-pod 'nduri'
-```
+Add this to your project using Swift Package Manager. In Xcode that is simply: File > Swift Packages > Add Package Dependency... and you're done. Alternative installations options are shown below for legacy projects.
 
 ## Author
 
-Moritz Herbert, moritz.herbert@amadeus.com
+__AUTHOR NAME__
+
 
 ## License
 
-nduri is available under the MIT license. See the LICENSE file for more info.
+nduri is available under the MIT license. See [the LICENSE file](LICENSE) for more information.

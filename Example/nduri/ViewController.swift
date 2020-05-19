@@ -6,8 +6,8 @@
 //  Copyright (c) 2020 Moritz Herbert. All rights reserved.
 //
 
-import nduri
 import UIKit
+import nduri
 
 class ViewController: UIViewController {
     private var heatmap: Heatmap?
