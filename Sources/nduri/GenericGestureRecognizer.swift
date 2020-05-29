@@ -4,7 +4,6 @@
 //  Created by Moritz Herbert on 31.03.20.
 //
 
-import Foundation
 import CoreMotion
 import UIKit
 
@@ -46,14 +45,23 @@ enum Grid {
 
 public class GestureMeasurement {
     public var data: Any?
+    public var datetime: Date
+    public var dataString: String {
+        if let nonNil = data, !(nonNil is NSNull) {
+            return String(describing: nonNil)
+        }
+
+        return ""
+    }
 
     init(data: Any?) {
         self.data = data
+        self.datetime = Date()
     }
 }
 
 public class Force: GestureMeasurement {
-    init(data: CGFloat) {
+    init(data: Double) {
         super.init(data: data)
     }
 }
@@ -71,7 +79,7 @@ public class Tilt: GestureMeasurement {
 }
 
 public class LinearStrokeDeviance: GestureMeasurement {
-    init(data: CGFloat) {
+    init(data: Double) {
         super.init(data: data)
     }
 }
@@ -96,13 +104,22 @@ public class TapDuration: GestureMeasurement {
     }
 }
 
+public struct LoggableMeasurement: Codable { //Cannot easily make data: Any from GestureMeasurement codable, therefore this intermediate struct is used for JSON parsing
+    var event: String
+    var data: String
+    var datetime: Date
+}
+
 public class MeasurementsList {
     private var measurements: [GestureMeasurement] = []
 
     public var listDidChange: ((GestureMeasurement) -> ())?
     public var jsonLog: Data? {
-        // TODO: make GestureMeasurement encodable
-        try? JSONSerialization.data(withJSONObject: measurements, options: JSONSerialization.WritingOptions())
+        let stringifiedMeasurements = measurements.map { LoggableMeasurement(event: String(describing: type(of: $0)), data: $0.dataString, datetime: $0.datetime) }
+
+        let encoder = JSONEncoder()
+
+        return try? encoder.encode(stringifiedMeasurements)
     }
 
     func append(_ measurement: GestureMeasurement) {
@@ -115,7 +132,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     private var strokePhase: StrokePhases = .notStarted
     private var initialTouchPoint = CGPoint.zero
     private var trackedTouch: UITouch? = nil
-    private(set) var measurementsLog = MeasurementsList()
+    public private(set) var measurementsLog = MeasurementsList()
     private var motionManager: CMMotionManager!
     private var motionTimer: Timer?
     private var gesturePath: [CGPoint]!
@@ -215,7 +232,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 let force = newTouch.force
                 let normalisedForce = force / newTouch.maximumPossibleForce
 
-                measurementsLog.append(Force(data: normalisedForce.isNaN ? force : normalisedForce))
+                measurementsLog.append(Force(data: Double(normalisedForce.isNaN ? force : normalisedForce)))
             } else {
                 // Fallback on earlier versions
             }
@@ -233,7 +250,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             if let pointWithMaxDeviance = gesturePath.max(by: { (p1, p2) -> Bool in
                 return p1.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint) < p2.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)
             }) {
-                measurementsLog.append(LinearStrokeDeviance(data: pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)))
+                measurementsLog.append(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
 
 
                 if deflection != .eastStroke && deflection != .westStroke { // won't make much sense
