@@ -56,7 +56,7 @@ public class GestureMeasurement {
 
     init(data: Any?) {
         self.data = data
-        self.datetime = Date()
+        datetime = Date()
     }
 }
 
@@ -104,7 +104,7 @@ public class TapDuration: GestureMeasurement {
     }
 }
 
-public struct LoggableMeasurement: Codable { //Cannot easily make data: Any from GestureMeasurement codable, therefore this intermediate struct is used for JSON parsing
+public struct LoggableMeasurement: Codable { // Cannot easily make data: Any from GestureMeasurement codable, therefore this intermediate struct is used for JSON parsing
     var event: String
     var data: String
     var datetime: Date
@@ -113,7 +113,7 @@ public struct LoggableMeasurement: Codable { //Cannot easily make data: Any from
 public class MeasurementsList {
     private var measurements: [GestureMeasurement] = []
 
-    public var listDidChange: ((GestureMeasurement) -> ())?
+    public var listDidChange: ((GestureMeasurement) -> Void)?
     public var jsonLog: Data? {
         let stringifiedMeasurements = measurements.map { LoggableMeasurement(event: String(describing: type(of: $0)), data: $0.dataString, datetime: $0.datetime) }
 
@@ -131,7 +131,7 @@ public class MeasurementsList {
 public class GenericGestureRecognizer: UIGestureRecognizer {
     private var strokePhase: StrokePhases = .notStarted
     private var initialTouchPoint = CGPoint.zero
-    private var trackedTouch: UITouch? = nil
+    private var trackedTouch: UITouch?
     public private(set) var measurementsLog = MeasurementsList()
     private var motionManager: CMMotionManager!
     private var motionTimer: Timer?
@@ -139,13 +139,13 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     private var strokeStopwatch = Stopwatch()
     private var tapStopwatch = Stopwatch()
 
-    public var measurementsDidChange: ((GestureMeasurement) -> ())? {
+    public var measurementsDidChange: ((GestureMeasurement) -> Void)? {
         didSet {
             measurementsLog.listDidChange = measurementsDidChange
         }
     }
 
-    public var fingerDidMove: ((CGPoint, CGPoint) -> ())?
+    public var fingerDidMove: ((CGPoint, CGPoint) -> Void)?
 
     public init(target: Any?) {
         super.init(target: target, action: nil)
@@ -156,20 +156,18 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         gesturePath = []
 
         #if !targetEnvironment(simulator)
-        motionTimer = Timer.scheduledTimer(withTimeInterval: 5,
-                                           repeats: true,
-                                           block: { _ in
+            motionTimer = Timer.scheduledTimer(withTimeInterval: 5,
+                                               repeats: true,
+                                               block: { _ in
 
-                                            if let accelerometerData = motionManager.accelerometerData {
-                                                print(accelerometerData.acceleration.x)
-                                            }
+                                                   if let accelerometerData = motionManager.accelerometerData {
+                                                       print(accelerometerData.acceleration.x)
+                                                   }
         })
         #endif
     }
 
-
-
-    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+    override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesBegan(touches, with: event)
 
         tapStopwatch.start()
@@ -196,11 +194,11 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         }
     }
 
-    public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
+    override public func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesMoved(touches, with: event)
 
         // There should be only the first touch.
-        guard let newTouch = touches.first, newTouch == self.trackedTouch else {
+        guard let newTouch = touches.first, newTouch == trackedTouch else {
             state = .failed
             return
         }
@@ -213,18 +211,17 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         gesturePath.append(newTouch.location(in: view))
     }
 
-    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+    override public func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesEnded(touches, with: event)
         _ = tapStopwatch.stop()
         let strokeDuration = strokeStopwatch.stop()
 
-        guard let newTouch = touches.first, newTouch == self.trackedTouch else {
+        guard let newTouch = touches.first, newTouch == trackedTouch else {
             state = .failed
             return
         }
 
         let endPoint = newTouch.location(in: view)
-
 
         switch strokePhase {
         case .initialPoint:
@@ -243,17 +240,15 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         case .moved:
             fingerDidMove?(initialTouchPoint, endPoint)
 
-            let deflection = determineDeflection(from: initialTouchPoint, to:endPoint)
+            let deflection = determineDeflection(from: initialTouchPoint, to: endPoint)
             measurementsLog.append(Deflection(data: deflection))
 
-
             if let pointWithMaxDeviance = gesturePath.max(by: { (p1, p2) -> Bool in
-                return p1.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint) < p2.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)
+                p1.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint) < p2.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)
             }) {
                 measurementsLog.append(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
 
-
-                if deflection != .eastStroke && deflection != .westStroke { // won't make much sense
+                if deflection != .eastStroke, deflection != .westStroke { // won't make much sense
                     let direction = determineDevianceDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
                     measurementsLog.append(LinearStrokeDevianceDirection(data: direction))
                 }
@@ -269,19 +264,19 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         state = .ended
     }
 
-    public override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+    override public func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesCancelled(touches, with: event)
-        self.initialTouchPoint = CGPoint.zero
-        self.strokePhase = .notStarted
-        self.trackedTouch = nil
-        self.state = .cancelled
+        initialTouchPoint = CGPoint.zero
+        strokePhase = .notStarted
+        trackedTouch = nil
+        state = .cancelled
     }
 
-    public override func reset() {
+    override public func reset() {
         super.reset()
-        self.initialTouchPoint = CGPoint.zero
-        self.strokePhase = .notStarted
-        self.trackedTouch = nil
+        initialTouchPoint = CGPoint.zero
+        strokePhase = .notStarted
+        trackedTouch = nil
     }
 
     private func determineDeflection(from start: CGPoint, to end: CGPoint) -> StrokeDeflection { // TODO: Revisit slope numbers
@@ -320,33 +315,33 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 // MARK: - Extensions
 
 extension CGPoint {
-    func slope(to: CGPoint) -> CGFloat{
-        let distanceX = to.x - self.x
-        let distanceY = to.y - self.y
+    func slope(to: CGPoint) -> CGFloat {
+        let distanceX = to.x - x
+        let distanceY = to.y - y
 
         return distanceY / distanceX
     }
 
     func distanceTo(lineSegmentBetween l1: CGPoint, and l2: CGPoint) -> CGFloat {
-        let a = self.x - l1.x
-        let b = self.y - l1.y
+        let a = x - l1.x
+        let b = y - l1.y
         let c = l2.x - l1.x
         let d = l2.y - l1.y
 
         let dot = a * c + b * d
         let lengthSquared = c * c + d * d
         var param = CGFloat(-1)
-        if (!lengthSquared.isZero) { //in case of 0 length line
+        if !lengthSquared.isZero { // in case of 0 length line
             param = dot / lengthSquared
         }
 
         var xx: CGFloat
         var yy: CGFloat
 
-        if (param < 0 || (l1.x == l2.x && l1.y == l2.y)) {
+        if param < 0 || (l1.x == l2.x && l1.y == l2.y) {
             xx = l1.x
             yy = l1.y
-        } else if (param > 1) {
+        } else if param > 1 {
             xx = l2.x
             yy = l2.y
         } else {
@@ -354,8 +349,8 @@ extension CGPoint {
             yy = l1.y + param * d
         }
 
-        let dx = self.x - xx
-        let dy = self.y - yy
+        let dx = x - xx
+        let dy = y - yy
 
         return (dx * dx + dy * dy).squareRoot()
     }

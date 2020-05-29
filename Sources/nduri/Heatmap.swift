@@ -26,7 +26,7 @@ public class Heatmap: UIView {
         isUserInteractionEnabled = false
     }
 
-    public override func draw(_ rect: CGRect) {
+    override public func draw(_ rect: CGRect) {
         guard let lineToDraw = lineToDraw else { return }
 
         let context = UIGraphicsGetCurrentContext()

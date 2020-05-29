@@ -6,8 +6,8 @@
 //  Copyright (c) 2020 Moritz Herbert. All rights reserved.
 //
 
-import UIKit
 import nduri
+import UIKit
 
 class ViewController: UIViewController {
     private var heatmap: Heatmap?
@@ -20,7 +20,7 @@ class ViewController: UIViewController {
         if let genericGestureRecognizer = genericGestureRecognizer {
             view.addGestureRecognizer(genericGestureRecognizer)
 
-            genericGestureRecognizer.measurementsDidChange = { (measurement: GestureMeasurement) in
+            genericGestureRecognizer.measurementsDidChange = { (_: GestureMeasurement) in
                 print("JSON log: \(String(data: genericGestureRecognizer.measurementsLog.jsonLog!, encoding: .utf8))")
             }
 
@@ -30,7 +30,7 @@ class ViewController: UIViewController {
         }
     }
 
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewDidAppear(_: Bool) {
         if let window = UIApplication.shared.keyWindow, heatmap == nil {
             heatmap = Heatmap(frame: window.bounds)
 
@@ -50,4 +50,3 @@ class ViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 }
-

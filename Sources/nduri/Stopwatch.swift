@@ -25,16 +25,16 @@ final class Stopwatch {
     var milliseconds: Double? {
         guard let endTime = endTime,
             let startTime = startTime else {
-                return nil
+            return nil
         }
 
-        return Double(endTime.uptimeNanoseconds - startTime.uptimeNanoseconds) / 1000000
+        return Double(endTime.uptimeNanoseconds - startTime.uptimeNanoseconds) / 1_000_000
     }
 
     var microseconds: Double? {
         guard let endTime = endTime,
             let startTime = startTime else {
-                return nil
+            return nil
         }
 
         return Double(endTime.uptimeNanoseconds - startTime.uptimeNanoseconds) / 1000
@@ -43,7 +43,7 @@ final class Stopwatch {
     var nanoseconds: Double? {
         guard let endTime = endTime,
             let startTime = startTime else {
-                return nil
+            return nil
         }
 
         return Double(endTime.uptimeNanoseconds - startTime.uptimeNanoseconds)
