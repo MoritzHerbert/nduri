@@ -29,21 +29,39 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
     public init(target: Any?) {
         super.init(target: target, action: nil)
-
-        motionManager = CMMotionManager()
-        motionManager.startAccelerometerUpdates()
-
         gesturePath = []
 
         #if !targetEnvironment(simulator)
-            motionTimer = Timer.scheduledTimer(withTimeInterval: 5,
-                                               repeats: true,
-                                               block: { _ in
+        motionManager = CMMotionManager()
+        motionManager.startAccelerometerUpdates()
+        motionTimer = Timer.scheduledTimer(withTimeInterval: 5,
+                                           repeats: true,
+                                           block: { _ in
 
-                                                   if let accelerometerData = motionManager.accelerometerData {
-                                                       print(accelerometerData.acceleration.x)
-                                                   }
+                                            if let accelerometerData = motionManager.accelerometerData {
+                                                print(accelerometerData.acceleration.x)
+                                            }
         })
+
+        if CMMotionActivityManager.isActivityAvailable() {
+            motionActivityManager = CMMotionActivityManager()
+            motionActivityManager.startActivityUpdates(to: OperationQueue.main) { motion in
+                print("staitionary", motion!.stationary)
+                print("walking", motion!.walking)
+                print("confidence", motion!.confidence)
+
+//
+//                self.isStationaryLabel.text = (motion?.stationary)! ? "True" : "False"
+//                self.isWalkingLabel.text = (motion?.walking)! ? "True" : "False"
+//                if motion?.confidence == CMMotionActivityConfidence.low {
+//                    self.confidenceLabel.text = "Low"
+//                } else if motion?.confidence == CMMotionActivityConfidence.medium {
+//                    self.confidenceLabel.text = "Medium"
+//                } else if motion?.confidence == CMMotionActivityConfidence.high {
+//                    self.confidenceLabel.text = "High"
+//                }
+            }
+        }
         #endif
     }
 
