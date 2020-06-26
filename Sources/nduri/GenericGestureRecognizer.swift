@@ -80,7 +80,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         if trackedTouch == nil {
             trackedTouch = touches.first
             strokePhase = .initialPoint
-            initialTouchPoint = (trackedTouch?.location(in: view))!
+            initialTouchPoint = trackedTouch!.location(in: nil)
             gesturePath.append(initialTouchPoint)
         } else {
             // Ignore all but the first touch.
@@ -106,7 +106,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             strokePhase = .moved
         }
 
-        gesturePath.append(newTouch.location(in: view))
+        gesturePath.append(newTouch.location(in: nil))
     }
 
     override public func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
@@ -119,7 +119,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             return
         }
 
-        let endPoint = newTouch.location(in: view)
+        let endPoint = newTouch.location(in: nil)
 
         switch strokePhase {
         case .initialPoint:
@@ -128,8 +128,6 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 let normalisedForce = force / newTouch.maximumPossibleForce
 
                 measurementsLog.append(Force(data: Double(normalisedForce.isNaN ? force : normalisedForce)))
-            } else {
-                // Fallback on earlier versions
             }
 
             if let tapDuration = tapStopwatch.microseconds {
