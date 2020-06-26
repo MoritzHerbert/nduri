@@ -144,7 +144,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             }) {
                 measurementsLog.append(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
 
-                if deflection != .eastStroke, deflection != .westStroke { // won't make much sense
+                if deflection != .east, deflection != .west { // won't make much sense
                     let direction = determineDevianceDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
                     measurementsLog.append(LinearStrokeDevianceDirection(data: direction))
                 }
@@ -175,23 +175,23 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         trackedTouch = nil
     }
 
-    private func determineDeflection(from start: CGPoint, to end: CGPoint) -> StrokeDeflection { // TODO: Revisit slope numbers
+    private func determineDeflection(from start: CGPoint, to end: CGPoint) -> Direction { // TODO: Revisit slope numbers
         let slope = start.slope(to: end)
 
         if slope < -2 {
-            return start.x <= end.x ? .northStroke : .southStroke
+            return start.x <= end.x ? .north : .south
         } else if slope < -0.5 {
-            return start.x <= end.x ? .northeastStroke : .southwestStroke
+            return start.x <= end.x ? .northeast : .southwest
         } else if slope < 0.5 {
-            return start.x <= end.x ? .eastStroke : .westStroke
+            return start.x <= end.x ? .east : .west
         } else if slope < 2 {
-            return start.x <= end.x ? .southeastStroke : .northwestStroke
+            return start.x <= end.x ? .southeast : .northwest
         }
 
-        return start.x <= end.x ? .southStroke : .northStroke
+        return start.x <= end.x ? .south : .north
     }
 
-    /// Figure out the determinant of vectors (Start-End,Start-Point) to determin in which direction the point deviates.
+    /// Figure out the determinant of vectors (Start-End,Start-Point) to determine in which direction the point deviates.
     private func determineDevianceDirection(from start: CGPoint, to end: CGPoint, lookingAt point: CGPoint) -> Direction {
         if start.y == end.y {
             return .none
@@ -201,9 +201,11 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
         switch sign {
         case .minus:
-            return start.y > end.y ? .left : .right
+            return start.y > end.y ? .west : .east
         case .plus:
-            return start.y > end.y ? .right : .left
+            return start.y > end.y ? .east : .west
+        }
+    }
         }
     }
 }
