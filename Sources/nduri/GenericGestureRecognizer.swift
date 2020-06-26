@@ -145,7 +145,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 measurementsLog.append(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
 
                 if deflection != .east, deflection != .west { // won't make much sense
-                    let direction = determineDevianceDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
+                    let direction = determineDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
                     measurementsLog.append(LinearStrokeDevianceDirection(data: direction))
                 }
             }
@@ -192,7 +192,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     }
 
     /// Figure out the determinant of vectors (Start-End,Start-Point) to determine in which direction the point deviates.
-    private func determineDevianceDirection(from start: CGPoint, to end: CGPoint, lookingAt point: CGPoint) -> Direction {
+    private func determineDirection(from start: CGPoint, to end: CGPoint, lookingAt point: CGPoint) -> Direction {
         if start.y == end.y {
             return .none
         }
@@ -206,6 +206,29 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             return start.y > end.y ? .east : .west
         }
     }
+
+    private func determineDirection(from point1: CGPoint, lookingAt point2: CGPoint) -> Direction {
+        switch (point1.x, point1.y, point2.x, point2.y) {
+        case let(x1, y1, x2, y2) where y1 == y2 && x1 == x2:
+            return .none
+        case let(x1, y1, x2, y2) where y1 == y2 && x1 < x2:
+            return .west
+        case let(x1, y1, x2, y2) where y1 == y2 && x1 > x2:
+            return .east
+        case let(x1, y1, x2, y2) where y1 < y2 && x1 == x2:
+            return .south
+        case let(x1, y1, x2, y2) where y1 < y2 && x1 < x2:
+            return .southwest
+        case let(x1, y1, x2, y2) where y1 < y2 && x1 > x2:
+            return .southeast
+        case let(x1, y1, x2, y2) where y1 > y2 && x1 == x2:
+            return .north
+        case let(x1, y1, x2, y2) where y1 > y2 && x1 < x2:
+            return .northwest
+        case let(x1, y1, x2, y2) where y1 > y2 && x1 > x2:
+            return .northeast
+        default:
+            return .none
         }
     }
 }
