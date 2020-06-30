@@ -26,8 +26,14 @@ public enum Direction: String {
     case none
 }
 
+public enum MotionType: String {
+    case stationary
+    case notStationary
+    case inMotion
+}
+
 // indicate where strokes took plase (should be used relative to scrollable areas)
-enum Grid {
+public enum Grid {
     case veryTopLeft
     case veryTopRight
     case topLeft
@@ -101,6 +107,12 @@ public class TapDuration: GestureMeasurement {
 
 public class RelativeTapDevianceDirection: GestureMeasurement {
     init(data: Direction) {
+        super.init(data: data)
+    }
+}
+
+public class Motion: GestureMeasurement {
+    init(data: MotionType) {
         super.init(data: data)
     }
 }

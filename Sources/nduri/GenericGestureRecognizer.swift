@@ -34,35 +34,30 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         #if !targetEnvironment(simulator)
             motionManager = CMMotionManager()
             motionManager.startAccelerometerUpdates()
-            motionTimer = Timer.scheduledTimer(withTimeInterval: 5,
+            motionTimer = Timer.scheduledTimer(withTimeInterval: 15,
                                                repeats: true,
                                                block: { _ in
-
                                                    if let accelerometerData = motionManager.accelerometerData {
-                                                       print(accelerometerData.acceleration.x)
+                                                       measurementsLog.append(Tilt(data: accelerometerData.acceleration.x))
                                                    }
         })
+        #endif
 
-            if CMMotionActivityManager.isActivityAvailable() {
-                motionActivityManager = CMMotionActivityManager()
-                motionActivityManager.startActivityUpdates(to: OperationQueue.main) { motion in
-                    print("staitionary", motion!.stationary)
-                    print("walking", motion!.walking)
-                    print("confidence", motion!.confidence.rawValue)
-
-//
-//                self.isStationaryLabel.text = (motion?.stationary)! ? "True" : "False"
-//                self.isWalkingLabel.text = (motion?.walking)! ? "True" : "False"
-//                if motion?.confidence == CMMotionActivityConfidence.low {
-//                    self.confidenceLabel.text = "Low"
-//                } else if motion?.confidence == CMMotionActivityConfidence.medium {
-//                    self.confidenceLabel.text = "Medium"
-//                } else if motion?.confidence == CMMotionActivityConfidence.high {
-//                    self.confidenceLabel.text = "High"
-//                }
+        if CMMotionActivityManager.isActivityAvailable() {
+            motionActivityManager = CMMotionActivityManager()
+            motionActivityManager.startActivityUpdates(to: OperationQueue.main) { [unowned self] motion in
+                if motion?.confidence != CMMotionActivityConfidence.low, motion?.unknown == false {
+                    switch (motion?.stationary, motion?.walking, motion?.running, motion?.automotive, motion?.cycling) {
+                    case (true, false, false, false, false):
+                        self.measurementsLog.append(Motion(data: .stationary))
+                    case (false, false, false, false, false):
+                        self.measurementsLog.append(Motion(data: .notStationary))
+                    default:
+                        self.measurementsLog.append(Motion(data: .inMotion))
+                    }
                 }
             }
-        #endif
+        }
     }
 
     override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
