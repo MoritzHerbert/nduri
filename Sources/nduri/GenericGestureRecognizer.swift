@@ -32,23 +32,23 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         gesturePath = []
 
         #if !targetEnvironment(simulator)
-        motionManager = CMMotionManager()
-        motionManager.startAccelerometerUpdates()
-        motionTimer = Timer.scheduledTimer(withTimeInterval: 5,
-                                           repeats: true,
-                                           block: { _ in
+            motionManager = CMMotionManager()
+            motionManager.startAccelerometerUpdates()
+            motionTimer = Timer.scheduledTimer(withTimeInterval: 5,
+                                               repeats: true,
+                                               block: { _ in
 
-                                            if let accelerometerData = motionManager.accelerometerData {
-                                                print(accelerometerData.acceleration.x)
-                                            }
+                                                   if let accelerometerData = motionManager.accelerometerData {
+                                                       print(accelerometerData.acceleration.x)
+                                                   }
         })
 
-        if CMMotionActivityManager.isActivityAvailable() {
-            motionActivityManager = CMMotionActivityManager()
-            motionActivityManager.startActivityUpdates(to: OperationQueue.main) { motion in
-                print("staitionary", motion!.stationary)
-                print("walking", motion!.walking)
-                print("confidence", motion!.confidence)
+            if CMMotionActivityManager.isActivityAvailable() {
+                motionActivityManager = CMMotionActivityManager()
+                motionActivityManager.startActivityUpdates(to: OperationQueue.main) { motion in
+                    print("staitionary", motion!.stationary)
+                    print("walking", motion!.walking)
+                    print("confidence", motion!.confidence.rawValue)
 
 //
 //                self.isStationaryLabel.text = (motion?.stationary)! ? "True" : "False"
@@ -60,8 +60,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 //                } else if motion?.confidence == CMMotionActivityConfidence.high {
 //                    self.confidenceLabel.text = "High"
 //                }
+                }
             }
-        }
         #endif
     }
 
@@ -142,7 +142,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             if let pointWithMaxDeviance = gesturePath.max(by: { (p1, p2) -> Bool in
                 p1.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint) < p2.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)
             }) {
-                measurementsLog.append(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
+                measurementsLog
+                    .append(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
 
                 if deflection != .east, deflection != .west { // won't make much sense
                     let direction = determineDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
@@ -209,23 +210,23 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
     private func determineDirection(from point1: CGPoint, lookingAt point2: CGPoint) -> Direction {
         switch (point1.x, point1.y, point2.x, point2.y) {
-        case let(x1, y1, x2, y2) where y1 == y2 && x1 == x2:
+        case let (x1, y1, x2, y2) where y1 == y2 && x1 == x2:
             return .none
-        case let(x1, y1, x2, y2) where y1 == y2 && x1 < x2:
+        case let (x1, y1, x2, y2) where y1 == y2 && x1 < x2:
             return .west
-        case let(x1, y1, x2, y2) where y1 == y2 && x1 > x2:
+        case let (x1, y1, x2, y2) where y1 == y2 && x1 > x2:
             return .east
-        case let(x1, y1, x2, y2) where y1 < y2 && x1 == x2:
+        case let (x1, y1, x2, y2) where y1 < y2 && x1 == x2:
             return .south
-        case let(x1, y1, x2, y2) where y1 < y2 && x1 < x2:
+        case let (x1, y1, x2, y2) where y1 < y2 && x1 < x2:
             return .southwest
-        case let(x1, y1, x2, y2) where y1 < y2 && x1 > x2:
+        case let (x1, y1, x2, y2) where y1 < y2 && x1 > x2:
             return .southeast
-        case let(x1, y1, x2, y2) where y1 > y2 && x1 == x2:
+        case let (x1, y1, x2, y2) where y1 > y2 && x1 == x2:
             return .north
-        case let(x1, y1, x2, y2) where y1 > y2 && x1 < x2:
+        case let (x1, y1, x2, y2) where y1 > y2 && x1 < x2:
             return .northwest
-        case let(x1, y1, x2, y2) where y1 > y2 && x1 > x2:
+        case let (x1, y1, x2, y2) where y1 > y2 && x1 > x2:
             return .northeast
         default:
             return .none
@@ -277,7 +278,7 @@ extension CGPoint {
     }
 
     func distance(to point: CGPoint) -> CGFloat {
-        return sqrt(pow(x - point.x, 2) + pow(y - point.y, 2))
+        sqrt(pow(x - point.x, 2) + pow(y - point.y, 2))
     }
 }
 
@@ -293,7 +294,7 @@ extension CGFloat {
 }
 
 extension UITouch {
-    ///pass in window in case you dont know a more exact location to start searching for the very child view containing the touch
+    /// pass in window in case you dont know a more exact location to start searching for the very child view containing the touch
     func frameOfTouchedView(startingIn view: UIView) -> CGRect? {
         let absoluteLocation = location(in: nil)
 

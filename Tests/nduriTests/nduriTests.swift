@@ -1,5 +1,5 @@
-import XCTest
 @testable import nduri
+import XCTest
 
 final class nduriTests: XCTestCase {
     func testExample() {
@@ -9,7 +9,5 @@ final class nduriTests: XCTestCase {
         XCTAssertEqual(nduri().text, "Hello, World!")
     }
 
-    static var allTests = [
-        ("testExample", testExample),
-    ]
+    static var allTests = [("testExample", testExample)]
 }

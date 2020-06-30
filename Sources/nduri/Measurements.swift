@@ -25,6 +25,7 @@ public enum Direction: String {
     case northeast
     case none
 }
+
 // indicate where strokes took plase (should be used relative to scrollable areas)
 enum Grid {
     case veryTopLeft
@@ -104,7 +105,8 @@ public class RelativeTapDevianceDirection: GestureMeasurement {
     }
 }
 
-public struct LoggableMeasurement: Codable { // Cannot easily make data: Any from GestureMeasurement codable, therefore this intermediate struct is used for JSON parsing
+public struct LoggableMeasurement: Codable {
+    // Cannot easily make data: Any from GestureMeasurement codable, therefore this intermediate struct is used for JSON parsing
     var event: String
     var data: String
     var datetime: Date
@@ -115,7 +117,8 @@ public class MeasurementsList {
 
     public var listDidChange: ((GestureMeasurement) -> Void)?
     public var jsonLog: Data? {
-        let stringifiedMeasurements = measurements.map { LoggableMeasurement(event: String(describing: type(of: $0)), data: $0.dataString, datetime: $0.datetime) }
+        let stringifiedMeasurements = measurements
+            .map { LoggableMeasurement(event: String(describing: type(of: $0)), data: $0.dataString, datetime: $0.datetime) }
 
         let encoder = JSONEncoder()
 

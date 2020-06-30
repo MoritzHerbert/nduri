@@ -1,0 +1,15 @@
+# file options
+
+--exclude Pods,Generated,**/.build,vendor/bundle,scripts
+
+# format options
+
+--maxwidth 160
+--swiftversion 5.1
+--wraparguments after-first
+--wrapparameters after-first
+--wrapcollections after-first
+
+# rules
+
+--enable isEmpty
