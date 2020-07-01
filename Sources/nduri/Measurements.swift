@@ -4,8 +4,7 @@
 //  Created by Moritz Herbert on 24.06.20.
 //
 
-import CoreMotion
-import UIKit
+import Foundation
 
 // indicate deflection when e.g. scrolling
 enum StrokePhases: String {
@@ -117,8 +116,8 @@ public class Motion: GestureMeasurement {
     }
 }
 
+/// Cannot easily make 'data: Any' from GestureMeasurement codable, therefore this intermediate struct is used for JSON parsing
 public struct LoggableMeasurement: Codable {
-    // Cannot easily make data: Any from GestureMeasurement codable, therefore this intermediate struct is used for JSON parsing
     var event: String
     var data: String
     var datetime: Date
