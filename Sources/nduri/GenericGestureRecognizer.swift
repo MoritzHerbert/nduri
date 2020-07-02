@@ -128,6 +128,14 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             if let tapDuration = tapStopwatch.microseconds {
                 measurementsLog.append(TapDuration(data: tapDuration))
             }
+
+            let frameOfTouchedView = newTouch.frameOfTouchedView(startingIn: view!)
+            if frameOfTouchedView?.width > 50 || frameOfTouchedView?.height > 50 { // for very small views/buttons, that measurement might be useless
+                let directionToCenterOfTouchedView = determineDirection(from: newTouch.location(in: nil),
+                                                                        lookingAt: CGPoint(x: frameOfTouchedView!.midX, y: frameOfTouchedView!.midY))
+
+                measurementsLog.append(RelativeTapDevianceDirection(data: directionToCenterOfTouchedView))
+            }
         case .moved:
             fingerDidMove?(initialTouchPoint, endPoint)
 
@@ -212,17 +220,17 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         case let (x1, y1, x2, y2) where y1 == y2 && x1 > x2:
             return .east
         case let (x1, y1, x2, y2) where y1 < y2 && x1 == x2:
-            return .south
-        case let (x1, y1, x2, y2) where y1 < y2 && x1 < x2:
-            return .southwest
-        case let (x1, y1, x2, y2) where y1 < y2 && x1 > x2:
-            return .southeast
-        case let (x1, y1, x2, y2) where y1 > y2 && x1 == x2:
             return .north
-        case let (x1, y1, x2, y2) where y1 > y2 && x1 < x2:
+        case let (x1, y1, x2, y2) where y1 < y2 && x1 < x2:
             return .northwest
-        case let (x1, y1, x2, y2) where y1 > y2 && x1 > x2:
+        case let (x1, y1, x2, y2) where y1 < y2 && x1 > x2:
             return .northeast
+        case let (x1, y1, x2, y2) where y1 > y2 && x1 == x2:
+            return .south
+        case let (x1, y1, x2, y2) where y1 > y2 && x1 < x2:
+            return .southwest
+        case let (x1, y1, x2, y2) where y1 > y2 && x1 > x2:
+            return .southeast
         default:
             return .none
         }
