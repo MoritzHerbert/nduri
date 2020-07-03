@@ -130,7 +130,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             }
 
             let frameOfTouchedView = newTouch.frameOfTouchedView(startingIn: view!)
-            if frameOfTouchedView?.width > 50 || frameOfTouchedView?.height > 50 { // for very small views/buttons, that measurement might be useless
+            if frameOfTouchedView?.width ?? 0.0 > 50.0 || frameOfTouchedView?.height ?? 0.0 > 50.0 { // for very small views/buttons, that measurement might be useless
                 let directionToCenterOfTouchedView = determineDirection(from: newTouch.location(in: nil),
                                                                         lookingAt: CGPoint(x: frameOfTouchedView!.midX, y: frameOfTouchedView!.midY))
 

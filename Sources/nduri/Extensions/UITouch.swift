@@ -21,6 +21,10 @@ extension UITouch {
             }
         }
 
+        if view.frame.contains(absoluteLocation) {
+            return view.frame
+        }
+
         return UIApplication.shared.keyWindow?.frame ?? nil
     }
 }
