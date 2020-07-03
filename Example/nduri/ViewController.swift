@@ -20,8 +20,9 @@ class ViewController: UIViewController {
         if let genericGestureRecognizer = genericGestureRecognizer {
             view.addGestureRecognizer(genericGestureRecognizer)
 
-            genericGestureRecognizer.measurementsDidChange = { (_: GestureMeasurement) in
-                print("JSON log: \(String(data: genericGestureRecognizer.measurementsLog.jsonLog!, encoding: .utf8))")
+            genericGestureRecognizer.measurementsDidChange = { (measurement: GestureMeasurement) in
+                print(measurement, measurement.data)
+//                print("JSON log: \(String(data: genericGestureRecognizer.measurementsLog.jsonLog!, encoding: .utf8))")
             }
 
 //            genericGestureRecognizer.fingerDidMove = { (start: CGPoint, end: CGPoint) in
