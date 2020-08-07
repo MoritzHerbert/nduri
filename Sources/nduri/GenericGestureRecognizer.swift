@@ -7,6 +7,7 @@
 import CoreMotion
 import UIKit
 
+@available(iOS 10.0, *)
 public class GenericGestureRecognizer: UIGestureRecognizer {
     private var strokePhase: StrokePhases = .notStarted
     private var initialTouchPoint = CGPoint.zero
@@ -36,9 +37,9 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             motionManager.startAccelerometerUpdates()
             motionTimer = Timer.scheduledTimer(withTimeInterval: 15,
                                                repeats: true,
-                                               block: { _ in
-                                                   if let accelerometerData = motionManager.accelerometerData {
-                                                       measurementsLog.append(Tilt(data: accelerometerData.acceleration.x))
+                                               block: { [unowned self] _ in
+                                                if let accelerometerData = self.motionManager.accelerometerData {
+                                                    self.measurementsLog.append(Tilt(data: accelerometerData.acceleration.x))
                                                    }
         })
         #endif
@@ -118,11 +119,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
         switch strokePhase {
         case .initialPoint:
-            if #available(iOS 9.1, *), !newTouch.force.isZero {
-                let force = newTouch.force
-                let normalisedForce = force / newTouch.maximumPossibleForce
-
-                measurementsLog.append(Force(data: Double(normalisedForce.isNaN ? force : normalisedForce)))
+            if !newTouch.force.isZero {
+                measurementsLog.append(Force(data: Double(newTouch.force)))
             }
 
             if let tapDuration = tapStopwatch.microseconds {
@@ -139,6 +137,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         case .moved:
             fingerDidMove?(initialTouchPoint, endPoint)
 
+            // FIXME: only makse sense if points are not very wide apart
             let deflection = determineDeflection(from: initialTouchPoint, to: endPoint)
             measurementsLog.append(Deflection(data: deflection))
 
@@ -148,10 +147,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 measurementsLog
                     .append(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
 
-                if deflection != .east, deflection != .west { // won't make much sense
-                    let direction = determineDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
-                    measurementsLog.append(LinearStrokeDevianceDirection(data: direction))
-                }
+                let direction = determineDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
+                measurementsLog.append(LinearStrokeDevianceDirection(data: direction))
             }
 
             if let strokeDuration = strokeDuration {

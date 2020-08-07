@@ -45,7 +45,7 @@ public enum Grid {
 
 public class GestureMeasurement {
     public var data: Any?
-    public var datetime: Date
+    public private(set) var datetime: Date
     public var dataString: String {
         if let nonNil = data, !(nonNil is NSNull) {
             return String(describing: nonNil)
@@ -123,13 +123,21 @@ public struct LoggableMeasurement: Codable {
     var datetime: Date
 }
 
+extension GestureMeasurement {
+    var loggable: LoggableMeasurement {
+        return LoggableMeasurement(event: String(describing: type(of: self)),
+                                   data: dataString,
+                                   datetime: datetime)
+    }
+}
+
 public class MeasurementsList {
     private var measurements: [GestureMeasurement] = []
 
     public var listDidChange: ((GestureMeasurement) -> Void)?
     public var jsonLog: Data? {
         let stringifiedMeasurements = measurements
-            .map { LoggableMeasurement(event: String(describing: type(of: $0)), data: $0.dataString, datetime: $0.datetime) }
+            .map { $0.loggable }
 
         let encoder = JSONEncoder()
 
