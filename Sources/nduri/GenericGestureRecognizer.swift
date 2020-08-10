@@ -16,7 +16,6 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     private var motionManager: CMMotionManager!
     private var motionActivityManager: CMMotionActivityManager!
     private var motionTimer: Timer?
-    private var gesturePath: [CGPoint]!
     private var strokeStopwatch = Stopwatch()
     private var tapStopwatch = Stopwatch()
 
@@ -27,10 +26,11 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     }
 
     public var fingerDidMove: ((CGPoint, CGPoint) -> Void)?
+    public var gesturePath: [CGPoint]!
+    public var gestureEnded: (() -> Void)?
 
     public init(target: Any?) {
         super.init(target: target, action: nil)
-        gesturePath = []
 
         #if !targetEnvironment(simulator)
             motionManager = CMMotionManager()
@@ -66,6 +66,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
         tapStopwatch.start()
         strokeStopwatch.start()
+
+        gesturePath = []
 
         // let's not consider multitouch for now
         if touches.count != 1 {
@@ -157,7 +159,10 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         default: ()
         }
 
-        gesturePath.removeAll(keepingCapacity: false)
+        if let gestureEnded = gestureEnded {
+            gestureEnded()
+        }
+
         state = .ended
     }
 
@@ -166,6 +171,11 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         initialTouchPoint = CGPoint.zero
         strokePhase = .notStarted
         trackedTouch = nil
+
+        if let gestureEnded = gestureEnded {
+            gestureEnded()
+        }
+
         state = .cancelled
     }
 

@@ -10,7 +10,7 @@ import nduri
 import UIKit
 
 class ViewController: UIViewController {
-//    private var heatmap: Heatmap?
+//    private var heatmap: GestureVisualizer?
     private var genericGestureRecognizer: GenericGestureRecognizer?
 
     override func viewDidLoad() {
@@ -33,7 +33,7 @@ class ViewController: UIViewController {
 
     override func viewDidAppear(_: Bool) {
 //        if let window = UIApplication.shared.keyWindow, heatmap == nil {
-//            heatmap = Heatmap(frame: window.bounds)
+//            heatmap = GestureVisualizer(frame: window.bounds)
 //
 //            if let heatmap = heatmap {
 //                window.addSubview(heatmap)
