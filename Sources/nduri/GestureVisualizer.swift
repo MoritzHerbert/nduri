@@ -38,15 +38,15 @@ public final class GestureVisualizer: UIView {
         }
 
         context?.strokePath()
+        context?.setLineWidth(2.0)
         context?.setStrokeColor(UIColor.green.cgColor)
 
         context?.move(to: line.first!)
         context?.addLine(to: line.last!)
 
-        let  dashes: [ CGFloat ] = [ 16.0, 32.0 ]
+        let dashes: [CGFloat] = [8, 8]
         context?.setLineDash(phase: 0.0, lengths: dashes)
         context?.strokePath()
-
     }
 
     public func draw(line: [CGPoint]) {

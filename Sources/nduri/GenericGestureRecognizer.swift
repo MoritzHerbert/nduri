@@ -26,7 +26,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     }
 
     public var fingerDidMove: ((CGPoint, CGPoint) -> Void)?
-    public var gesturePath: [CGPoint]!
+    public var gesturePath: [CGPoint] = []
     public var gestureEnded: (() -> Void)?
 
     public init(target: Any?) {
@@ -38,8 +38,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             motionTimer = Timer.scheduledTimer(withTimeInterval: 15,
                                                repeats: true,
                                                block: { [unowned self] _ in
-                                                if let accelerometerData = self.motionManager.accelerometerData {
-                                                    self.measurementsLog.append(Tilt(data: accelerometerData.acceleration.x))
+                                                   if let accelerometerData = self.motionManager.accelerometerData {
+                                                       self.measurementsLog.append(Tilt(data: accelerometerData.acceleration.x))
                                                    }
         })
         #endif
@@ -67,7 +67,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         tapStopwatch.start()
         strokeStopwatch.start()
 
-        gesturePath = []
+        gesturePath.removeAll()
 
         // let's not consider multitouch for now
         if touches.count != 1 {
@@ -130,7 +130,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             }
 
             let frameOfTouchedView = newTouch.frameOfTouchedView(startingIn: view!)
-            if frameOfTouchedView?.width ?? 0.0 > 50.0 || frameOfTouchedView?.height ?? 0.0 > 50.0 { // for very small views/buttons, that measurement might be useless
+            if frameOfTouchedView?.width ?? 0.0 > 50.0 || frameOfTouchedView?
+                .height ?? 0.0 > 50.0 { // for very small views/buttons, that measurement might be useless
                 let directionToCenterOfTouchedView = determineDirection(from: newTouch.location(in: nil),
                                                                         lookingAt: CGPoint(x: frameOfTouchedView!.midX, y: frameOfTouchedView!.midY))
 

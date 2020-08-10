@@ -125,9 +125,9 @@ public struct LoggableMeasurement: Codable {
 
 extension GestureMeasurement {
     var loggable: LoggableMeasurement {
-        return LoggableMeasurement(event: String(describing: type(of: self)),
-                                   data: dataString,
-                                   datetime: datetime)
+        LoggableMeasurement(event: String(describing: type(of: self)),
+                            data: dataString,
+                            datetime: datetime)
     }
 }
 
