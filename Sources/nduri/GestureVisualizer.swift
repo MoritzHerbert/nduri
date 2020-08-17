@@ -39,7 +39,7 @@ public final class GestureVisualizer: UIView {
 
         context?.strokePath()
         context?.setLineWidth(2.0)
-        context?.setStrokeColor(UIColor.green.cgColor)
+        context?.setStrokeColor(UIColor.blue.cgColor)
 
         context?.move(to: line.first!)
         context?.addLine(to: line.last!)
