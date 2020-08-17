@@ -16,8 +16,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     private var motionManager: CMMotionManager!
     private var motionActivityManager: CMMotionActivityManager!
     private var motionTimer: Timer?
-    private var strokeStopwatch = Stopwatch()
-    private var tapStopwatch = Stopwatch()
+    private var gestureStopwatch = Stopwatch()
 
     public var measurementsDidChange: ((GestureMeasurement) -> Void)? {
         didSet {
@@ -64,8 +63,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesBegan(touches, with: event)
 
-        tapStopwatch.start()
-        strokeStopwatch.start()
+        gestureStopwatch.start()
 
         gesturePath.removeAll()
 
@@ -109,8 +107,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
     override public func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
         super.touchesEnded(touches, with: event)
-        _ = tapStopwatch.stop()
-        let strokeDuration = strokeStopwatch.stop()
+        let gestureDurationInMilliseconds = gestureStopwatch.stop()
 
         guard let newTouch = touches.first, newTouch == trackedTouch else {
             state = .failed
@@ -122,10 +119,12 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         switch strokePhase {
         case .initialPoint:
             if !newTouch.force.isZero {
-                measurementsLog.append(Force(data: Double(newTouch.force)))
+                measurementsLog.append(TouchForce(data: Double(newTouch.force)))
             }
 
-            if let tapDuration = tapStopwatch.microseconds {
+            measurementsLog.append(TouchRadius(data: Double(newTouch.majorRadius)))
+
+            if let tapDuration = gestureStopwatch.microseconds {
                 measurementsLog.append(TapDuration(data: tapDuration))
             }
 
@@ -154,8 +153,8 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 measurementsLog.append(LinearStrokeDevianceDirection(data: direction))
             }
 
-            if let strokeDuration = strokeDuration {
-                measurementsLog.append(StrokeSpeed(data: Double(initialTouchPoint.distance(to: endPoint)) / strokeDuration))
+            if let gestureDurationInMilliseconds = gestureDurationInMilliseconds {
+                measurementsLog.append(StrokeSpeed(data: Double(initialTouchPoint.distance(to: endPoint)) / gestureDurationInMilliseconds))
             }
         default: ()
         }

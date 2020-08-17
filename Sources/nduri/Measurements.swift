@@ -60,7 +60,13 @@ public class GestureMeasurement {
     }
 }
 
-public class Force: GestureMeasurement {
+public class TouchForce: GestureMeasurement {
+    init(data: Double) {
+        super.init(data: data)
+    }
+}
+
+public class TouchRadius: GestureMeasurement {
     init(data: Double) {
         super.init(data: data)
     }
