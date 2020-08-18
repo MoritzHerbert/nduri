@@ -33,13 +33,13 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
 
         #if !targetEnvironment(simulator)
             motionManager = CMMotionManager()
-            motionManager.startAccelerometerUpdates()
-            motionTimer = Timer.scheduledTimer(withTimeInterval: 15,
+            motionManager.startDeviceMotionUpdates()
+            motionTimer = Timer.scheduledTimer(withTimeInterval: 1,
                                                repeats: true,
                                                block: { [unowned self] _ in
-                                                   if let accelerometerData = self.motionManager.accelerometerData {
-                                                       self.measurementsLog.append(Tilt(data: accelerometerData.acceleration.x))
-                                                   }
+                                               if let pitch = self.motionManager.deviceMotion?.attitude.pitch {
+                                                   self.measurementsLog.append(Tilt(data:pitch))
+                                               }
         })
         #endif
 
