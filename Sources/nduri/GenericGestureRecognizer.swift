@@ -12,21 +12,16 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     private var strokePhase: StrokePhases = .notStarted
     private var initialTouchPoint = CGPoint.zero
     private var trackedTouch: UITouch?
-    public private(set) var measurementsLog = MeasurementsList()
+
     private var motionManager: CMMotionManager!
     private var motionActivityManager: CMMotionActivityManager!
     private var motionTimer: Timer?
     private var gestureStopwatch = Stopwatch()
 
-    public var measurementsDidChange: ((GestureMeasurement) -> Void)? {
-        didSet {
-            measurementsLog.listDidChange = measurementsDidChange
-        }
-    }
-
     public var fingerDidMove: ((CGPoint, CGPoint) -> Void)?
     public var gesturePath: [CGPoint] = []
     public var gestureEnded: (() -> Void)?
+    public var measurementCreated: ((GestureMeasurement) -> Void)?
 
     public init(target: Any?) {
         super.init(target: target, action: nil)
@@ -37,10 +32,10 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
             motionTimer = Timer.scheduledTimer(withTimeInterval: 1,
                                                repeats: true,
                                                block: { [unowned self] _ in
-                                               if let pitch = self.motionManager.deviceMotion?.attitude.pitch {
-                                                   self.measurementsLog.append(Tilt(data:pitch))
-                                               }
-        })
+                                                   if let pitch = self.motionManager.deviceMotion?.attitude.pitch {
+                                                       self.measurementCreated?(Tilt(data: pitch))
+                                                   }
+                                               })
         #endif
 
         if CMMotionActivityManager.isActivityAvailable() {
@@ -49,11 +44,11 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 if motion?.confidence != CMMotionActivityConfidence.low, motion?.unknown == false {
                     switch (motion?.stationary, motion?.walking, motion?.running, motion?.automotive, motion?.cycling) {
                     case (true, false, false, false, false):
-                        self.measurementsLog.append(Motion(data: .stationary))
+                        self.measurementCreated?(Motion(data: .stationary))
                     case (false, false, false, false, false):
-                        self.measurementsLog.append(Motion(data: .notStationary))
+                        self.measurementCreated?(Motion(data: .notStationary))
                     default:
-                        self.measurementsLog.append(Motion(data: .inMotion))
+                        self.measurementCreated?(Motion(data: .inMotion))
                     }
                 }
             }
@@ -119,13 +114,13 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         switch strokePhase {
         case .initialPoint:
             if !newTouch.force.isZero {
-                measurementsLog.append(TouchForce(data: Double(newTouch.force)))
+                measurementCreated?(TouchForce(data: Double(newTouch.force)))
             }
 
-            measurementsLog.append(TouchRadius(data: Double(newTouch.majorRadius)))
+            measurementCreated?(TouchRadius(data: Double(newTouch.majorRadius)))
 
             if let tapDuration = gestureStopwatch.microseconds {
-                measurementsLog.append(TapDuration(data: tapDuration))
+                measurementCreated?(TapDuration(data: tapDuration))
             }
 
             let frameOfTouchedView = newTouch.frameOfTouchedView(startingIn: view!)
@@ -134,27 +129,26 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
                 let directionToCenterOfTouchedView = determineDirection(from: newTouch.location(in: nil),
                                                                         lookingAt: CGPoint(x: frameOfTouchedView!.midX, y: frameOfTouchedView!.midY))
 
-                measurementsLog.append(RelativeTapDevianceDirection(data: directionToCenterOfTouchedView))
+                measurementCreated?(RelativeTapDevianceDirection(data: directionToCenterOfTouchedView))
             }
         case .moved:
             fingerDidMove?(initialTouchPoint, endPoint)
 
             // FIXME: only makse sense if points are not very wide apart
             let deflection = determineDeflection(from: initialTouchPoint, to: endPoint)
-            measurementsLog.append(Deflection(data: deflection))
+            measurementCreated?(Deflection(data: deflection))
 
             if let pointWithMaxDeviance = gesturePath.max(by: { (p1, p2) -> Bool in
                 p1.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint) < p2.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)
             }) {
-                measurementsLog
-                    .append(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
+                measurementCreated?(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
 
                 let direction = determineDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
-                measurementsLog.append(LinearStrokeDevianceDirection(data: direction))
+                measurementCreated?(LinearStrokeDevianceDirection(data: direction))
             }
 
             if let gestureDurationInMilliseconds = gestureDurationInMilliseconds {
-                measurementsLog.append(StrokeSpeed(data: Double(initialTouchPoint.distance(to: endPoint)) / gestureDurationInMilliseconds))
+                measurementCreated?(StrokeSpeed(data: Double(initialTouchPoint.distance(to: endPoint)) / gestureDurationInMilliseconds))
             }
         default: ()
         }

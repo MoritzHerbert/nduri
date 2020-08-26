@@ -6,11 +6,18 @@
 
 import UIKit
 
+@available(iOS 9.0, *)
 public final class GestureVisualizer: UIView {
     private var line: [CGPoint]?
 
-    override public init(frame: CGRect) {
-        super.init(frame: frame)
+    public init(window: UIWindow) {
+        super.init(frame: window.frame)
+
+        window.addSubview(self)
+        topAnchor.constraint(equalTo: window.topAnchor).isActive = true
+        bottomAnchor.constraint(equalTo: window.bottomAnchor).isActive = true
+        leadingAnchor.constraint(equalTo: window.leadingAnchor).isActive = true
+        trailingAnchor.constraint(equalTo: window.trailingAnchor).isActive = true
 
         isUserInteractionEnabled = false
         backgroundColor = .clear

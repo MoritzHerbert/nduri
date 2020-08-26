@@ -129,6 +129,54 @@ public struct LoggableMeasurement: Codable {
     var datetime: Date
 }
 
+class AggregatedNumericMeasurement {
+    private(set) var last: GestureMeasurement?
+    private var standardDeviation: Double {
+        cardinality < 2 ? 0 : sqrt(variance / Double(max(1, cardinality - 1)))
+    }
+
+    private(set) var variance: Double = 0
+    private(set) var mean: Double = 0
+    private(set) var cardinality = 0
+
+    func update(with measurement: GestureMeasurement) {
+        if !(measurement.data is Double) { return }
+
+        let oldMean = mean
+        cardinality += 1
+
+        setMean(newValue: measurement.data as! Double)
+        setVariance(newValue: measurement.data as! Double, oldMean: oldMean)
+
+        last = measurement
+    }
+
+    func setMean(newValue: Double) {
+        mean = mean + ((newValue - mean) / Double(cardinality))
+    }
+
+    func setVariance(newValue: Double, oldMean: Double) {
+        variance = variance + (newValue - oldMean) * (newValue - mean)
+    }
+}
+
+class AggregatedEnumMeasurement {
+    private(set) var last: GestureMeasurement?
+    private(set) var counts: [String: Int] = [:]
+
+    func update(with measurement: GestureMeasurement) {
+        if measurement.data is Double || measurement.dataString == "" { return } // TODO: isEnum-ish check
+
+        if counts[measurement.dataString] == nil {
+            counts[measurement.dataString] = 0
+        }
+
+        counts[measurement.dataString]! += 1
+
+        last = measurement
+    }
+}
+
 extension GestureMeasurement {
     var loggable: LoggableMeasurement {
         LoggableMeasurement(event: String(describing: type(of: self)),
@@ -139,6 +187,8 @@ extension GestureMeasurement {
 
 public class MeasurementsList {
     private var measurements: [GestureMeasurement] = []
+    private var aggregatedNumericMeasurements: [String: AggregatedNumericMeasurement] = [:]
+    private var aggregatedEnumMeasurements: [String: AggregatedEnumMeasurement] = [:]
 
     public var listDidChange: ((GestureMeasurement) -> Void)?
     public var jsonLog: Data? {
@@ -152,6 +202,28 @@ public class MeasurementsList {
 
     func append(_ measurement: GestureMeasurement) {
         measurements.append(measurement)
+
+        if measurement.data is Double {
+            guard let aggregatedMeasurement = aggregatedNumericMeasurements[String(describing: measurement.self)] else {
+                let aggregatedMeasurement = AggregatedNumericMeasurement()
+                aggregatedMeasurement.update(with: measurement)
+                aggregatedNumericMeasurements[String(describing: measurement.self)] = aggregatedMeasurement
+
+                return
+            }
+
+            aggregatedMeasurement.update(with: measurement)
+        } else {
+            guard let aggregatedMeasurement = aggregatedEnumMeasurements[String(describing: measurement.self)] else {
+                let aggregatedMeasurement = AggregatedEnumMeasurement()
+                aggregatedMeasurement.update(with: measurement)
+                aggregatedEnumMeasurements[String(describing: measurement.self)] = aggregatedMeasurement
+
+                return
+            }
+
+            aggregatedMeasurement.update(with: measurement)
+        }
         listDidChange?(measurement)
     }
 }
