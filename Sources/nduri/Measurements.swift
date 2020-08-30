@@ -196,6 +196,8 @@ public class MeasurementsList {
             .map { $0.loggable }
 
         let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = JSONEncoder.DateEncodingStrategy.iso8601
+        encoder.outputFormatting = .prettyPrinted
 
         return try? encoder.encode(stringifiedMeasurements)
     }
