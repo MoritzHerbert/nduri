@@ -23,7 +23,7 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
     public var gestureEnded: (() -> Void)?
     public var measurementCreated: ((GestureMeasurement) -> Void)?
 
-    public init(target: Any?) {
+    public init(target: UIView) {
         super.init(target: target, action: nil)
 
         #if !targetEnvironment(simulator)

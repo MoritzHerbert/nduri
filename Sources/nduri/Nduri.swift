@@ -30,7 +30,6 @@ public final class Nduri: NSObject {
     public func setup(in view: UIView) {
         genericGestureRecognizer = GenericGestureRecognizer(target: view)
         genericGestureRecognizer?.cancelsTouchesInView = false
-        genericGestureRecognizer?.delegate = self
 
         genericGestureRecognizer?.measurementCreated = { [unowned self] measurement in
             switch self.phase {
@@ -65,14 +64,6 @@ public final class Nduri: NSObject {
 
     public func removeVisualization() {
         gestureVisualizer = nil
-    }
-}
-
-@available(iOS 10.0, *)
-extension Nduri: UIGestureRecognizerDelegate {
-    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        gestureRecognizer is GenericGestureRecognizer || otherGestureRecognizer is GenericGestureRecognizer
     }
 }
 
