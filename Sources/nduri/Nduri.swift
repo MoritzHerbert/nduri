@@ -29,6 +29,7 @@ public final class Nduri {
 
     public func setup(in view: UIView) {
         genericGestureRecognizer = GenericGestureRecognizer(target: view)
+        genericGestureRecognizer?.cancelsTouchesInView = false
 
         genericGestureRecognizer?.measurementCreated = { [unowned self] measurement in
             switch self.phase {
