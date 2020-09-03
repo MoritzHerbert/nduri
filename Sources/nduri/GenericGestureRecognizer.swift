@@ -134,21 +134,43 @@ public class GenericGestureRecognizer: UIGestureRecognizer {
         case .moved:
             fingerDidMove?(initialTouchPoint, endPoint)
 
-            // FIXME: only makse sense if points are not very wide apart
-            let deflection = determineDeflection(from: initialTouchPoint, to: endPoint)
-            measurementCreated?(Deflection(data: deflection))
+            if initialTouchPoint.distance(to: endPoint) < 40 {
+                let deflection = determineDeflection(from: initialTouchPoint, to: endPoint)
+                measurementCreated?(Deflection(data: deflection))
 
-            if let pointWithMaxDeviance = gesturePath.max(by: { (p1, p2) -> Bool in
-                p1.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint) < p2.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)
-            }) {
-                measurementCreated?(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
+                if !newTouch.force.isZero {
+                    measurementCreated?(TouchForce(data: Double(newTouch.force)))
+                }
 
-                let direction = determineDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
-                measurementCreated?(LinearStrokeDevianceDirection(data: direction))
-            }
+                measurementCreated?(TouchRadius(data: Double(newTouch.majorRadius)))
 
-            if let gestureDurationInMilliseconds = gestureDurationInMilliseconds {
-                measurementCreated?(StrokeSpeed(data: Double(initialTouchPoint.distance(to: endPoint)) / gestureDurationInMilliseconds))
+                if let tapDuration = gestureStopwatch.microseconds {
+                    measurementCreated?(TapDuration(data: tapDuration))
+                }
+
+                let frameOfTouchedView = newTouch.frameOfTouchedView(startingIn: view!)
+                if frameOfTouchedView?.width ?? 0.0 > 50.0 || frameOfTouchedView?
+                    .height ?? 0.0 > 50.0 { // for very small views/buttons, that measurement might be useless
+                    let directionToCenterOfTouchedView = determineDirection(from: newTouch.location(in: nil),
+                                                                            lookingAt: CGPoint(x: frameOfTouchedView!.midX, y: frameOfTouchedView!.midY))
+
+                    measurementCreated?(RelativeTapDevianceDirection(data: directionToCenterOfTouchedView))
+                }
+            } else {
+                if let pointWithMaxDeviance = gesturePath.max(by: { (p1, p2) -> Bool in
+                    p1.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint) < p2.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint)
+                }) {
+                    measurementCreated?(LinearStrokeDeviance(data: Double(pointWithMaxDeviance.distanceTo(lineSegmentBetween: initialTouchPoint, and: endPoint))))
+
+                    let direction = determineDirection(from: initialTouchPoint, to: endPoint, lookingAt: pointWithMaxDeviance)
+                    measurementCreated?(LinearStrokeDevianceDirection(data: direction))
+                }
+
+                measurementCreated?(StrokeDistance(data: Double(initialTouchPoint.distance(to: endPoint))))
+
+                if let gestureDurationInMilliseconds = gestureDurationInMilliseconds {
+                    measurementCreated?(StrokeSpeed(data: Double(initialTouchPoint.distance(to: endPoint)) / gestureDurationInMilliseconds))
+                }
             }
         default: ()
         }

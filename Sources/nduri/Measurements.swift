@@ -103,6 +103,12 @@ public class StrokeSpeed: GestureMeasurement {
     }
 }
 
+public class StrokeDistance: GestureMeasurement {
+    init(data: Double) {
+        super.init(data: data)
+    }
+}
+
 // microseconds
 public class TapDuration: GestureMeasurement {
     init(data: Double) {
