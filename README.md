@@ -1,8 +1,8 @@
 # Nondisruptive user re-identification
 
-[![CI Status](http://img.shields.io/travis/__GITHUB_USERNAME__/nduri.svg?style=flat)](https://travis-ci.org/__GITHUB_USERNAME__/nduri)
-![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/__GITHUB_USERNAME__/nduri)
-[![License](https://img.shields.io/github/license/__GITHUB_USERNAME__/nduri)](LICENSE)
+[![CI Status](http://img.shields.io/travis/MoritzHerbert/nduri.svg?style=flat)](https://travis-ci.org/MoritzHerbert/nduri)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/MoritzHerbert/nduri)
+[![License](https://img.shields.io/github/license/_MoritzHerbert/nduri)](LICENSE)
 
 > :warning: **Prototype not ready for use yet**
 
@@ -35,7 +35,7 @@ Add this to your project using Swift Package Manager. In Xcode that is simply: F
 
 ## Author
 
-__GITHUB_USERNAME__
+MoritzHerbert
 
 ## License
 
